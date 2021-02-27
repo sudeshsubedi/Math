@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from custom_utils import determinant
+from custom_utils import determinant, generateIdentityMatrixData
 
 class Matrix:
     def __init__(self, rows:int, cols:int, data:list[list[int]]):
@@ -30,16 +30,38 @@ class Matrix:
         
         return determinant(self.__data)
 
+    def __gauss_jordan(self):
+        if not self.isSquare:
+            raise Exception("Cannot find the inverse of non square matrix")
+        if self.determinant() == 0:
+            raise Exception("Cannot find the inverse of singular matrix")
+
+        identityEquivalent = np.array(generateIdentityMatrixData(self.i), dtype=np.float64)
+        dataEquivalent = self.__data
+        for col in range(self.i):
+            if dataEquivalent[col][col] != 1:
+                tempDivisionFactor = dataEquivalent[col][col]
+                dataEquivalent[col] = dataEquivalent[col]/tempDivisionFactor
+                identityEquivalent[col] = identityEquivalent[col]/tempDivisionFactor
+            for i in range(self.i):
+                if i==col:
+                    continue
+                tempSubFactor = dataEquivalent[i][col]
+                dataEquivalent[i] = dataEquivalent[i] - dataEquivalent[col] * tempSubFactor
+                identityEquivalent[i] = identityEquivalent[i] - identityEquivalent[col] * tempSubFactor
+        return identityEquivalent
+    def inverse(self):
+        return Matrix(self.i, self.i, np.ndarray.tolist(self.__gauss_jordan()))
 
 
 
 
 if __name__=="__main__":
     data = [
-        [1],
-        [1]
+        [2, -1, 4],
+        [1, 0, -4],
+        [6, -1, 2]
     ]
-    for i in range(0):
-        print("test")
-    matrix = Matrix(2, 1, data)
-    print(matrix.getData().shape)
+    matrix = Matrix(3, 3, data)
+
+    print(matrix.inverse().getData())
