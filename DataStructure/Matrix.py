@@ -1,6 +1,9 @@
 from typing import List
+
 import numpy as np
+
 from custom_utils import determinant, generateIdentityMatrixData
+
 
 class Matrix:
     def __init__(self, rows:int, cols:int, data:list[list[int]]):
@@ -17,6 +20,37 @@ class Matrix:
         self.i = rows
         self.j = cols
         self.isSquare = rows == cols
+
+    def __repr__(self):
+        return str(self.getData())
+
+    def __add__(self, other):
+        if self.i != other.i or self.j != other.j:
+            raise Exception("Different order of matrix can't be added")
+        
+        newData = self.__data + other.getData()
+        return Matrix(self.i, self.j, np.ndarray.tolist(newData))
+    
+    def __sub__(self, other):
+        if self.i != other.i or self.j != other.j:
+            raise Exception("Different order of matrix can't be subtracted")
+        
+        newData = self.__data - other.getData()
+        return Matrix(self.i, self.j, np.ndarray.tolist(newData))
+
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            newData = self.__data * other
+            return Matrix(self.i, self.j, newData.tolist())
+        if isinstance(other, Matrix):
+            if(self.j != other.i):
+                raise Exception("You can only multiply a matrix with another matrix\n if the no of column of first matrix is equal to the no of rows of second matrix.")
+            newData = np.zeros((self.i, other.j), dtype=np.float64)
+            for m in range(self.i):
+                for n in range(other.j):
+                    newData[m][n] = sum(self.__data[m] * other.getData()[:, n])
+
+            return Matrix(self.i, other.j, newData.tolist())
 
     def getData(self):
         return self.__data
@@ -53,15 +87,26 @@ class Matrix:
     def inverse(self):
         return Matrix(self.i, self.i, np.ndarray.tolist(self.__gauss_jordan()))
 
+    @classmethod
+    def zero(cls, i:int, j:int):
+        data = [[0 for _ in range(j)] for _ in range(i)]
+        return cls(i, j, data)
+
 
 
 
 if __name__=="__main__":
     data = [
-        [2, -1, 4],
-        [1, 0, -4],
-        [6, -1, 2]
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
     ]
     matrix = Matrix(3, 3, data)
 
-    print(matrix.inverse().getData())
+    data = [
+        [1, 2, 3, 4, 5],
+        [3, 6, 8, 9, 2],
+        [1, 9, 4, 3, 5]
+    ]
+    matrix2 = Matrix(3, 5, data)
+    print(matrix*matrix2)
